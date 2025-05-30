@@ -1,13 +1,13 @@
-# ollama-gateway
+# runner-gateway
 
-A simple gateway for interacting with the Ollama API that provides authentication using PASETO tokens.
+A simple gateway for interacting with model runner APIs (i.e. Ollama) that provides TLS and OAuth2.0 authentication with PASETO token validation.
 
 ## Features
 
 - **Authentication**: Secure access to the Ollama API using PASETO tokens.
 - **Configuration**: Easy configuration through a YAML file.
 - **Logging**: Detailed logging for monitoring and debugging.
-- **SSL/TLS Support**: Optional SSL/TLS support for secure communication.
+- **SSL/TLS Support**: SSL/TLS support for secure communication.
 
 ## Installation
 

@@ -20,9 +20,9 @@ func NewTLSService(s *models.Settings) *tlsService {
 	}
 }
 
-func (t *tlsService) Configuration() (*tls.Config, error) {
-	t.log.Trace().Msg("Creating TLS configuration")
-	crt, err := t.LoadCertificate()
+func (svc *tlsService) Configuration() (*tls.Config, error) {
+	svc.log.Trace().Msg("Creating TLS configuration")
+	crt, err := svc.LoadCertificate()
 	if err != nil {
 		return nil, err
 	}
@@ -34,13 +34,13 @@ func (t *tlsService) Configuration() (*tls.Config, error) {
 	}, nil
 }
 
-func (t *tlsService) LoadCertificate() (tls.Certificate, error) {
-	t.log.Trace().
-		Str("certPath", t.s.Server.CertificatePath).
-		Str("keyPath", t.s.Server.KeyPath).
+func (svc *tlsService) LoadCertificate() (tls.Certificate, error) {
+	svc.log.Trace().
+		Str("certPath", svc.s.Server.CertificatePath).
+		Str("keyPath", svc.s.Server.KeyPath).
 		Msg("Loading TLS certificate")
 
-	crt, err := tls.LoadX509KeyPair(t.s.Server.CertificatePath, t.s.Server.KeyPath)
+	crt, err := tls.LoadX509KeyPair(svc.s.Server.CertificatePath, svc.s.Server.KeyPath)
 	if err != nil {
 		return crt, err
 	}

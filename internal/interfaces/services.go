@@ -8,7 +8,7 @@ type AuthorizationService interface {
 	GeneratePublicPASETO() (string, error)
 	GeneratePrivatePASETO() (string, error)
 	GenerateSymmetricKey() string
-	ValidateToken(token []byte) bool
+	ValidateToken(token string) error
 }
 
 type GatewayService interface {

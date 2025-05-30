@@ -27,7 +27,7 @@ func NewGatewayService(s *models.Settings) *gatewayService {
 	}
 }
 
-func (gtwy *gatewayService) ForwardRequest(hst string, pth string, schm string) func(*fasthttp.RequestCtx) {
+func (svc *gatewayService) ForwardRequest(hst string, pth string, schm string) func(*fasthttp.RequestCtx) {
 	return func(ctx *fasthttp.RequestCtx) {
 		pxyReq := &proxyRequest{
 			rcvd: time.Now(),
@@ -46,7 +46,7 @@ func (gtwy *gatewayService) ForwardRequest(hst string, pth string, schm string) 
 					ctx.SetBodyString("Internal server error")
 				}
 
-				gtwy.log.Error().
+				svc.log.Error().
 					Str("duration", time.Since(pxyReq.rcvd).String()).
 					Interface("panic", rec).
 					Str("stacktrace", string(debug.Stack())).
@@ -60,7 +60,7 @@ func (gtwy *gatewayService) ForwardRequest(hst string, pth string, schm string) 
 		// remap the host, path, and scheme to downstream server
 		dwnUri := pxyReq.req.URI()
 
-		gtwy.log.Debug().
+		svc.log.Debug().
 			Str("originalHost", string(dwnUri.Host())).
 			Str("originalPath", string(dwnUri.Path())).
 			Str("originalScheme", string(dwnUri.Scheme())).
@@ -75,7 +75,7 @@ func (gtwy *gatewayService) ForwardRequest(hst string, pth string, schm string) 
 
 		// reverse proxy the request, log any errors and respond accordingly
 		if err := fasthttp.Do(pxyReq.req, &ctx.Response); err != nil {
-			gtwy.log.Error().
+			svc.log.Error().
 				Err(err).
 				Str("uri", dwnUri.String()).
 				Msg("Failed to proxy request")
@@ -85,7 +85,7 @@ func (gtwy *gatewayService) ForwardRequest(hst string, pth string, schm string) 
 			return
 		}
 
-		gtwy.log.Info().
+		svc.log.Info().
 			Str("duration", time.Since(pxyReq.rcvd).String()).
 			Str("originalHost", string(dwnUri.Host())).
 			Str("originalPath", string(dwnUri.Path())).
