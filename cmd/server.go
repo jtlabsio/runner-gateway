@@ -54,20 +54,19 @@ func main() {
 	gtwySvc := services.NewGatewayService(s)
 
 	// register routes
-	rtr, err := routers.Register(s, authSvc, gtwySvc)
+	hndlr, err := routers.Register(s, authSvc, gtwySvc)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to register routes")
 	}
 
 	// start server
 	log.Info().
-		Interface("routes", rtr.List()).
 		Str("address", s.Server.Address).
 		Msg("Starting server...")
 
 	if s.Server.CertificatePath == "" {
 		// start HTTP server
-		if err := fasthttp.ListenAndServe(s.Server.Address, rtr.Handler); err != nil {
+		if err := fasthttp.ListenAndServe(s.Server.Address, hndlr); err != nil {
 			log.Fatal().Err(err).Msg("Failed to start HTTP server")
 		}
 
@@ -94,7 +93,7 @@ func main() {
 
 	// create a fasthttp server with the registered routes
 	svr := &fasthttp.Server{
-		Handler:               rtr.Handler,
+		Handler:               hndlr,
 		NoDefaultServerHeader: true,
 		ReadTimeout:           s.Server.ReadTimeout,
 		WriteTimeout:          s.Server.WriteTimeout,

@@ -32,3 +32,5 @@ settings/paseto.pub
 
 # build output
 bin/
+
+.acme.sh

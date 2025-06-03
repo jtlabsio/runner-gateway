@@ -2,6 +2,7 @@ package services
 
 import (
 	"runtime/debug"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -27,7 +28,7 @@ func NewGatewayService(s *models.Settings) *gatewayService {
 	}
 }
 
-func (svc *gatewayService) ForwardRequest(hst string, pth string, schm string) func(*fasthttp.RequestCtx) {
+func (svc *gatewayService) ForwardRequest(hst string, pthPfx string, schm string) func(*fasthttp.RequestCtx) {
 	return func(ctx *fasthttp.RequestCtx) {
 		pxyReq := &proxyRequest{
 			rcvd: time.Now(),
@@ -57,9 +58,18 @@ func (svc *gatewayService) ForwardRequest(hst string, pth string, schm string) f
 		// copy the inbound request to the proxy request state struct
 		ctx.Request.CopyTo(pxyReq.req)
 
-		// remap the host, path, and scheme to downstream server
+		// evaluate inbound path and determine if adjustments are needed
 		dwnUri := pxyReq.req.URI()
+		pth := string(dwnUri.Path())
+		if len(pthPfx) > 1 {
+			svc.log.Trace().
+				Str("prefix", pthPfx).
+				Str("path", pth).
+				Msg("Trimming prefix from path")
+			pth = strings.TrimPrefix(pth, pthPfx)
+		}
 
+		// 
 		svc.log.Debug().
 			Str("originalHost", string(dwnUri.Host())).
 			Str("originalPath", string(dwnUri.Path())).
