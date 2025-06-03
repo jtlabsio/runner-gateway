@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changes v0.1.2
 
-- Fixed issue with routing when providing one or multiple runners in the configuration.
+- Added support for multiple runners in the configuration file.
 
 ## [0.1.1] - 2025-06-02
 

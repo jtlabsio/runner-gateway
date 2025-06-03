@@ -3,6 +3,7 @@ package routers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 	"github.com/valyala/fasthttp"
@@ -32,15 +33,16 @@ func Register(s *models.Settings, as interfaces.AuthorizationService, gs interfa
 	}
 
 	return func(ctx *fasthttp.RequestCtx) {
-		// handle the default scenario (1 runner)
-		if len(pths) == 1 {
-			pths[s.Runners[0].Path](ctx)
-			return
+		in := string(ctx.URI().Path())
+		for pth := range pths {
+			if strings.HasPrefix(in, pth) {
+				pths[pth](ctx)
+				return
+			}
 		}
 
 		// handle the multiple scenarios (multiple runners)
-		// TODO: implement routing logic for multiple runners
-		log.Fatal().Msg("Multiple runners not yet implemented")
+		log.Warn().Str("path", in).Msg("No handler found for path")
 		ctx.SetStatusCode(http.StatusNotFound)
 		ctx.SetBodyString("Not Found")
 	}, nil

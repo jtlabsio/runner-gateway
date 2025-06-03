@@ -58,7 +58,7 @@ paseto:
   # set your secret key here (optional if the service should validate v4.local tokens)
   secretKey: Xthisshouldbeasecretkeythatis64bytestosupportpasetov4standardsXX
 runners:
-  - host: host.docker.internal:11434
+  - host: host.docker.internal:11434 # note the host name - this is for Docker
     name: ollama
     path: /
     scheme: http
@@ -69,6 +69,24 @@ server:
 ```
 
 **note:** A simple way to generate TLS certificates and keys is to use the `acme.sh` script. This script can be used to automate the creation and renewal of Let's Encrypt TLS certificates for your domain: <https://github.com/acmesh-official/acme.sh>
+
+#### Model Runners
+
+The service can be configured to run multiple model runners. Each model runner is defined in the `runners` section of the configuration file, and the `path` element of the configuration can be used to route requests to the appropriate model runner. Here is a simple example of a configuration with two different model runners:
+
+```yaml
+runners:
+  - host: 127.0.0.1:11434
+    name: ollama
+    path: /local-ollama
+    scheme: http
+  - host: other.ollama.host:11434
+    name: ollama
+    path: /corp-ollama
+    scheme: http
+```
+
+With the above configuration, inbound requests to the gateway with a prefix of /local-ollama (for example, `GET /local-ollama/api/tags`) would be sent to the downstream host as follows: `GET http://127.0.0.1:11434/api/tags`). Similarly, requests to the gateway with a prefix of /corp-ollama would be sent to `http://other.ollama.host:11434/api/tags`.
 
 ### Build
 
@@ -89,9 +107,12 @@ docker run -d \
   --restart unless-stopped \
   --name runner-gateway \
   -e GO_ENV=my-domain \
-  -v /home/user/.acme.sh:/opt/gateway/.acme.sh \
+  -v ./settings:/opt/gateway/settings \
+  -v ${HOME}/.acme.sh:/opt/gateway/.acme.sh \
   runner-gateway
 ```
+
+The volume maps above are specified to allow the service to access the configuration overrides and TLS certificates, respectively... adjust these values as necessary to your environment. The docker build will also copy the `settings` to the image at time of build, but by using a volume mount, the docker image will not need to be rebuilt each time the configuration or certificates change (it will only need to be restarted).
 
 ## Tools
 
