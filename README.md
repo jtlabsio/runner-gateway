@@ -64,7 +64,7 @@ runners:
     scheme: http
 server:
   # paths to your TLS certificate and keys (optional if TLS is desired)
-  certificatePath: .acme.sh/my-domain.com_ecc/my-domain.com.cer
+  certificatePath: .acme.sh/my-domain.com_ecc/fullchain.cer
   keyPath: .acme.sh/my-domain.com_ecc/my-domain.com.key
 ```
 
