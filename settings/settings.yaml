@@ -1,10 +1,11 @@
 logging:
   level: info
 paseto:
-  expiration: 87660h # 10 years
+  expiration: 8766h # 1 year
   keyPath: "./settings/paseto.key"
   publicPath: "./settings/paseto.pub"
   secretKey: "your-secret-key"
+  version: v4
 runners:
   - host: 127.0.0.1:11434
     name: ollama
