@@ -57,10 +57,15 @@ paseto:
   expiration: 8766h # 1 year
   # set your secret key here (optional if the service should validate v4.local tokens)
   secretKey: Xthisshouldbeasecretkeythatis64bytestosupportpasetov4standardsXX
+runners:
+  - host: host.docker.internal:11434
+    name: ollama
+    path: /
+    scheme: http
 server:
   # paths to your TLS certificate and keys (optional if TLS is desired)
-  certificatePath: /home/user/.acme.sh/my-domain.com_ecc/my-domain.com.cer
-  keyPath: /home/user/.acme.sh/my-domain.com_ecc/my-domain.com.key
+  certificatePath: .acme.sh/my-domain.com_ecc/my-domain.com.cer
+  keyPath: .acme.sh/my-domain.com_ecc/my-domain.com.key
 ```
 
 **note:** A simple way to generate TLS certificates and keys is to use the `acme.sh` script. This script can be used to automate the creation and renewal of Let's Encrypt TLS certificates for your domain: <https://github.com/acmesh-official/acme.sh>
@@ -84,6 +89,7 @@ docker run -d \
   --restart unless-stopped \
   --name runner-gateway \
   -e GO_ENV=my-domain \
+  -v /home/user/.acme.sh:/opt/gateway/.acme.sh \
   runner-gateway
 ```
 
