@@ -7,6 +7,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/valyala/fasthttp"
+	"go.jtlabs.io/runner-gateway/internal/interfaces"
 	"go.jtlabs.io/runner-gateway/internal/models"
 	"go.jtlabs.io/runner-gateway/internal/routers"
 	"go.jtlabs.io/runner-gateway/internal/services"
@@ -19,8 +20,35 @@ func main() {
 		log.Fatal().Err(err).Msg("Failed to load settings")
 	}
 
-	// create authorization service
-	authSvc := services.NewAuthorizationService(s)
+	var pstp interfaces.PASETOProvider
+
+	// create a v4 service...
+	if s.PASETO.Version == "v4" {
+		v4p, err := services.NewV4Service(s)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to create v4 PASETO service")
+		}
+
+		pstp = v4p
+	}
+
+	// create a v2 service...
+	if s.PASETO.Version == "v2" {
+		v2p, err := services.NewV2Service(s)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to create v4 PASETO service")
+		}
+
+		pstp = v2p
+	}
+
+	// ensure we have a PASETO provider configured
+	if pstp == nil {
+		log.Fatal().Msg("Failed to create PASETO provider... please verify your configuration (only v2 and v4 are supported).")
+	}
+
+	// create the auth service with configured PASETO provider
+	authSvc := services.NewAuthorizationService(pstp, s)
 
 	// create gateway service
 	gtwySvc := services.NewGatewayService(s)
@@ -36,6 +64,15 @@ func main() {
 		Interface("routes", rtr.List()).
 		Str("address", s.Server.Address).
 		Msg("Starting server...")
+
+	if s.Server.CertificatePath == "" {
+		// start HTTP server
+		if err := fasthttp.ListenAndServe(s.Server.Address, rtr.Handler); err != nil {
+			log.Fatal().Err(err).Msg("Failed to start HTTP server")
+		}
+
+		return
+	}
 
 	// load tls configuration
 	tlsSvc := services.NewTLSService(s)

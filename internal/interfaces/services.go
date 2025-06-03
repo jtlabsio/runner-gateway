@@ -4,7 +4,7 @@ import "github.com/valyala/fasthttp"
 
 type AuthorizationService interface {
 	AuthorizeRequest(next fasthttp.RequestHandler) fasthttp.RequestHandler
-	GenerateAsymmetricKeyPair() (string, string)
+	GenerateAsymmetricKeyPair() (string, string, error)
 	GeneratePublicPASETO() (string, error)
 	GeneratePrivatePASETO() (string, error)
 	GenerateSymmetricKey() string

@@ -16,6 +16,7 @@ type Settings struct {
 		KeyPath    string        `json:"keyPath" yaml:"keyPath"`
 		PublicPath string        `json:"publicPath" yaml:"publicPath"`
 		SecretKey  string        `json:"secretKey" yaml:"secretKey"`
+		Version    string        `json:"version" yaml:"version"`
 	} `json:"paseto" yaml:"paseto"`
 	Runners []struct {
 		Host   string `json:"host" yaml:"host"`

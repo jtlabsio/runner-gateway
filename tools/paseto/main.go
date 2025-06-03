@@ -17,7 +17,12 @@ const (
 )
 
 func generateKeyPair(authSvc interfaces.AuthorizationService) {
-	crt, pub := authSvc.GenerateAsymmetricKeyPair()
+	pub, crt, err := authSvc.GenerateAsymmetricKeyPair()
+	if err != nil {
+		log.Fatal().
+			Err(err).
+			Msg("Unable to generate key pair")
+	}
 
 	if err := writeFile(keyPath, os.O_CREATE|os.O_WRONLY, 0644, crt); err != nil {
 		log.Fatal().
@@ -61,11 +66,39 @@ func main() {
 			Msg("Failed to load settings")
 	}
 
+	// initialize paseto service
+	var pstp interfaces.PASETOProvider
+
+	// create a v4 service
+	if s.PASETO.Version == "v4" {
+		v4p, err := services.NewV4Service(s)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to create v4 PASETO service")
+		}
+
+		pstp = v4p
+	}
+
+	// create a v2 service
+	if s.PASETO.Version == "v2" {
+		v2p, err := services.NewV2Service(s)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to create v4 PASETO service")
+		}
+
+		pstp = v2p
+	}
+
+	if pstp == nil {
+		log.Fatal().Msg("Failed to create PASETO provider... please verify your configuration (only v2 and v4 are supported).")
+	}
+
 	// initialize authorization service
-	authSvc := services.NewAuthorizationService(s)
+	authSvc := services.NewAuthorizationService(pstp, s)
 
 	// read command line arguments
-	actn := flag.String("action", "", "Action to perform (generate|validate)")
+	actn := flag.String("action", "", "Action to perform (assymetric|public|private|symmetric|verify)")
+	tkn := flag.String("token", "", "[Optional] Token to validate")
 	flag.Parse()
 
 	if actn == nil {
@@ -118,6 +151,19 @@ func main() {
 
 	case "validate":
 		// Validate a PASETO token
+		if *tkn == "" {
+			log.Fatal().
+				Msg("No token provided for validation")
+		}
+
+		if err := authSvc.ValidateToken(*tkn); err != nil {
+			log.Fatal().
+				Err(err).
+				Msg("Failed to validate PASETO token")
+		}
+
+		log.Info().
+			Msg("PASETO token validated successfully")
 
 	default:
 		log.Fatal().
